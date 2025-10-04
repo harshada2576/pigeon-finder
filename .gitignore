@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Backup files
+*~
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+.env/
+env/
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Moved duplicates folder (assuming it's generated output)
+moved_duplicates/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# macOS files
+.DS_Store
+
