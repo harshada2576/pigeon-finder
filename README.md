@@ -1,5 +1,3 @@
-# check-duplicate-files
-
 ---
 
 # 🐦 PigeonFinder: The Efficient Duplicate File Finder
