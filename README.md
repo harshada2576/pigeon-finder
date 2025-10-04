@@ -116,7 +116,5 @@ We welcome contributions! If you have suggestions for performance enhancements (
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-```
-
 ---
 
