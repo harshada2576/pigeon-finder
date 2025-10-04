@@ -60,6 +60,9 @@ The program is run using:
 
 ```bash
 python cli_main.py <TARGET_DIRECTORY> [OPTIONS]
+
+
+For example:python cli_main.py test_dir
 ````
 
 ### Argument Reference
