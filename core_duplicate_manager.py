@@ -1,5 +1,5 @@
 """
-Duplicate File Management with Advanced Operations
+Duplicate File Management
 """
 
 import os
@@ -38,12 +38,15 @@ class DuplicateManager:
         
         for original, duplicates in self.duplicate_groups.items():
             total_duplicates += len(duplicates)
-            original_size = os.path.getsize(original)
-            total_size += original_size * len(duplicates)
-            
-            # Count file types
-            ext = Path(original).suffix.lower()
-            file_types[ext] = file_types.get(ext, 0) + len(duplicates) + 1
+            try:
+                original_size = os.path.getsize(original)
+                total_size += original_size * len(duplicates)
+                
+                # Count file types
+                ext = Path(original).suffix.lower()
+                file_types[ext] = file_types.get(ext, 0) + len(duplicates) + 1
+            except OSError:
+                continue
         
         return {
             'total_groups': len(self.duplicate_groups),
@@ -133,48 +136,6 @@ class DuplicateManager:
         self._update_groups_after_deletion(file_paths)
         
         return success_count, failed_files
-    
-    def create_symlinks(self, file_paths: List[str], link_directory: str) -> Tuple[int, List[str]]:
-        """
-        Replace duplicates with symbolic links to save space
-        
-        Args:
-            file_paths: List of duplicate files to replace with symlinks
-            link_directory: Directory containing original files
-            
-        Returns:
-            Tuple of (success_count, failed_files)
-        """
-        success_count = 0
-        failed_files = []
-        
-        for file_path in file_paths:
-            try:
-                # Find the original file in the same duplicate group
-                original = self._find_original_for_duplicate(file_path)
-                if not original:
-                    continue
-                
-                # Create relative symlink
-                relative_original = os.path.relpath(original, os.path.dirname(file_path))
-                os.remove(file_path)  # Remove duplicate
-                os.symlink(relative_original, file_path)  # Create symlink
-                
-                success_count += 1
-                logger.info(f"Created symlink for {file_path} -> {original}")
-                
-            except Exception as e:
-                failed_files.append(file_path)
-                logger.error(f"Failed to create symlink for {file_path}: {e}")
-        
-        return success_count, failed_files
-    
-    def _find_original_for_duplicate(self, duplicate_path: str) -> str:
-        """Find the original file for a duplicate"""
-        for original, duplicates in self.duplicate_groups.items():
-            if duplicate_path in duplicates:
-                return original
-        return ""
     
     def _update_groups_after_deletion(self, deleted_files: List[str]):
         """Update duplicate groups after file deletion"""

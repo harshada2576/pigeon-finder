@@ -1,21 +1,36 @@
 """
-Results Panel for Displaying and Managing Duplicates
+Results Panel for Displaying Duplicates
 """
 
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 from pathlib import Path
 import os
-from ..core.duplicate_manager import DuplicateManager
-from .styles import Styles
-import logging
 
-logger = logging.getLogger(__name__)
+class Styles:
+    """Simple styles class"""
+    COLOR_PRIMARY = "#2E86AB"
+    COLOR_SECONDARY = "#A23B72"
+    COLOR_DANGER = "#F44336"
+    COLOR_DANGER_DARK = "#D32F2F"
+    COLOR_SUCCESS = "#4CAF50"
+    COLOR_TEXT_SECONDARY = "#757575"
+    COLOR_BORDER = "#E0E0E0"
+    COLOR_GROUP_HEADER = "#E8F4FD"
+    
+    FONT_FAMILY = "Segoe UI"
+    FONT_HEADING = (FONT_FAMILY, 20, "bold")
+    FONT_SUBHEADING = (FONT_FAMILY, 16, "bold")
+    FONT_BOLD = (FONT_FAMILY, 12, "bold")
+    FONT_NORMAL = (FONT_FAMILY, 12)
+    FONT_SMALL = (FONT_FAMILY, 11)
+    FONT_SMALL_BOLD = (FONT_FAMILY, 11, "bold")
+    FONT_BUTTON = (FONT_FAMILY, 12, "bold")
 
 class ResultsPanel(ctk.CTkFrame):
     """Panel for displaying and managing duplicate files"""
     
-    def __init__(self, parent, duplicate_manager: DuplicateManager):
+    def __init__(self, parent, duplicate_manager):
         super().__init__(parent)
         self.manager = duplicate_manager
         self.duplicate_groups = {}

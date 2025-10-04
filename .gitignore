@@ -1,32 +1,61 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / cache files
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.so
 
-# Backup files
-*~
-
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
-
-# Virtual environments
+# Virtual environment
 venv/
 .env/
-env/
+.envrc
+*.env
 
-# Logs and databases
+# PyInstaller build artifacts
+dist/
+build/
+*.spec
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
 *.log
-*.sqlite3
 
-# Moved duplicates folder (assuming it's generated output)
-moved_duplicates/
-
-# IDE/editor files
+# IDEs and editors
 .vscode/
 .idea/
-*.swp
+*.sublime-project
+*.sublime-workspace
 
-# macOS files
+# OS files
 .DS_Store
+Thumbs.db
 
+# Docs build
+docs/_build/
+docs/assets/screenshots/
+docs/assets/diagrams/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Logs and temp
+*.log
+*.tmp
+
+# MyPy / type checking
+.mypy_cache/
+.dmypy.json
+typings/
+
+# Pigeon-finder specific
+pigeon-finder.db
+*.sqlite3
+*.bak

@@ -1,17 +1,12 @@
 """
-Statistics Panel with Visualizations
+Statistics Panel
 """
 
 import customtkinter as ctk
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-import matplotlib
-matplotlib.use('TkAgg')
-from .styles import Styles
+from ui_styles import Styles
 
 class StatsPanel(ctk.CTkFrame):
-    """Panel for displaying detailed statistics and visualizations"""
+    """Panel for displaying statistics"""
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -29,7 +24,7 @@ class StatsPanel(ctk.CTkFrame):
         # Initial message
         self.initial_label = ctk.CTkLabel(
             self.scrollable_frame,
-            text="Run a scan to see detailed statistics and visualizations.",
+            text="Run a scan to see detailed statistics.",
             font=Styles.FONT_NORMAL,
             text_color=Styles.COLOR_TEXT_SECONDARY
         )
@@ -51,8 +46,6 @@ class StatsPanel(ctk.CTkFrame):
         # Create statistics sections
         self.create_summary_section()
         self.create_optimization_section()
-        self.create_file_type_chart()
-        self.create_space_usage_chart()
         
     def show_no_data(self):
         """Show message when no data is available"""
@@ -88,7 +81,7 @@ class StatsPanel(ctk.CTkFrame):
             ("Potential Space Saved", f"{self.stats_data['wasted_space'] / (1024**3):.2f} GB")
         ]
         
-        for i, (label, value) in enumerate(stats):
+        for label, value in stats:
             row = ctk.CTkFrame(stats_grid, fg_color="transparent")
             row.pack(fill="x", pady=5)
             
@@ -155,97 +148,3 @@ class StatsPanel(ctk.CTkFrame):
             justify="center"
         )
         explanation.pack(pady=10)
-    
-    def create_file_type_chart(self):
-        """Create file type distribution chart"""
-        if not self.stats_data.get('file_types'):
-            return
-            
-        chart_frame = ctk.CTkFrame(self.scrollable_frame)
-        chart_frame.pack(fill="x", padx=5, pady=5)
-        
-        # Title
-        title_label = ctk.CTkLabel(
-            chart_frame,
-            text="Duplicate File Types",
-            font=Styles.FONT_SUBHEADING
-        )
-        title_label.pack(pady=10)
-        
-        # Create matplotlib figure
-        fig = Figure(figsize=(8, 4), dpi=100)
-        ax = fig.add_subplot(111)
-        
-        file_types = self.stats_data['file_types']
-        
-        # Prepare data for chart
-        labels = []
-        counts = []
-        
-        for ext, count in sorted(file_types.items(), key=lambda x: x[1], reverse=True)[:8]:
-            labels.append(ext if ext else 'No Extension')
-            counts.append(count)
-        
-        # Create pie chart
-        colors = plt.cm.Set3(range(len(labels)))
-        wedges, texts, autotexts = ax.pie(
-            counts, 
-            labels=labels, 
-            autopct='%1.1f%%',
-            startangle=90,
-            colors=colors
-        )
-        
-        # Style the chart
-        for autotext in autotexts:
-            autotext.set_color('white')
-            autotext.set_fontweight('bold')
-        
-        ax.set_title('Distribution of Duplicate File Types', pad=20)
-        
-        # Embed in tkinter
-        canvas = FigureCanvasTkAgg(fig, chart_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=10)
-    
-    def create_space_usage_chart(self):
-        """Create space usage visualization"""
-        if not self.stats_data.get('wasted_space', 0) > 0:
-            return
-            
-        chart_frame = ctk.CTkFrame(self.scrollable_frame)
-        chart_frame.pack(fill="x", padx=5, pady=5)
-        
-        # Title
-        title_label = ctk.CTkLabel(
-            chart_frame,
-            text="Space Usage Analysis",
-            font=Styles.FONT_SUBHEADING
-        )
-        title_label.pack(pady=10)
-        
-        # Create matplotlib figure
-        fig = Figure(figsize=(8, 3), dpi=100)
-        ax = fig.add_subplot(111)
-        
-        wasted_gb = self.stats_data['wasted_space'] / (1024**3)
-        categories = ['Wasted Space', 'Usable Space']
-        sizes = [wasted_gb, 100 - wasted_gb]  # Simplified visualization
-        
-        # Create bar chart
-        bars = ax.bar(categories, sizes, color=[Styles.COLOR_DANGER, Styles.COLOR_SUCCESS])
-        
-        # Add value labels on bars
-        for bar, value in zip(bars, sizes):
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + 1,
-                   f'{value:.1f}%', ha='center', va='bottom', fontweight='bold')
-        
-        ax.set_ylabel('Percentage (%)')
-        ax.set_ylim(0, 110)
-        ax.set_title('Storage Space Utilization')
-        
-        # Embed in tkinter
-        canvas = FigureCanvasTkAgg(fig, chart_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=10)
