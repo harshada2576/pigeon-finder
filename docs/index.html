@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pigeon Finder Docs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+</head>
+<body>
+  <div id="app">Loading...</div>
+
+  <script>
+    window.$docsify = {
+      name: 'Pigeon Finder Docs', // Your project name
+      repo: 'link-to-your-github-repo', // Optional: adds a GitHub icon link
+      loadSidebar: true, // Crucial: Loads the _sidebar.md file
+      subMaxLevel: 3, // Automatically generate a table of contents up to H3
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md' // Ensures the sidebar loads correctly on all pages
+      }
+    }
+  </script>
+
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+</body>
+</html>

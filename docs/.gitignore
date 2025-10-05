@@ -1,0 +1,5 @@
+# Documentation Build Output
+# Adjust this based on your documentation generator
+/site/      # MkDocs default build output
+/build/     # Sphinx default build output
+.DS_Store
