@@ -235,7 +235,13 @@ class ResultsPanel(ctk.CTkFrame):
     def update_selection_display(self):
         """Update selection information and button states"""
         selected_count = len(self.selected_files)
-        total_size = sum(os.path.getsize(f) for f in self.selected_files)
+        total_size = 0
+        for f in self.selected_files:
+            try:
+                total_size += os.path.getsize(f)
+            except Exception:
+                # ignore files we can't stat
+                continue
         
         self.selection_label.configure(
             text=f"Selected: {selected_count} files ({total_size / (1024*1024):.1f} MB)"

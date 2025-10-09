@@ -182,7 +182,18 @@ class StatsPanel(ctk.CTkFrame):
         labels = []
         counts = []
         
-        for ext, count in sorted(file_types.items(), key=lambda x: x[1], reverse=True)[:8]:
+        # Select top 8 file types by count without using sorted()
+        items = list(file_types.items())
+        top_items = []
+        while items and len(top_items) < 8:
+            # find max item
+            max_idx = 0
+            for idx in range(1, len(items)):
+                if items[idx][1] > items[max_idx][1]:
+                    max_idx = idx
+            top_items.append(items.pop(max_idx))
+
+        for ext, count in top_items:
             labels.append(ext if ext else 'No Extension')
             counts.append(count)
         

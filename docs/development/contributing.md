@@ -1,79 +1,55 @@
-This file is essential for encouraging and guiding others to contribute to your project.
-
-Markdown
+This file explains how to contribute code, tests and documentation to Pigeon Finder.
 
 # Contributing
 
-We welcome contributions! Whether it's a bug fix, new feature, or documentation improvement, your help is valuable.
+We welcome contributions of all kinds: bug fixes, feature work, tests, documentation and examples.
 
-## Reporting Bugs 🐛
+## Reporting bugs
 
-If you find a bug, please help us by reporting it on our GitHub Issues page.
+When filing a bug report, please include:
 
-1.  **Search existing issues** to make sure the bug hasn't already been reported.
-2.  **Open a new issue** and use the **Bug Report** template.
-3.  Include a **clear title and description**.
-4.  Provide **steps to reproduce** the bug and the expected vs. actual behavior.
-5.  Specify your **operating system** and the **project version** you are using.
+- A short summary and background
+- Steps to reproduce the problem
+- What you expected to happen
+- What actually happened (including tracebacks if any)
+- Your OS and Python version
 
-## Suggesting Enhancements ✨
+## Suggesting enhancements
 
-We love new ideas!
+Open a new issue labelled "enhancement" and describe the problem you're trying to solve, why it's beneficial, and an optional implementation plan.
 
-1.  **Open a new issue** and use the **Feature Request** template.
-2.  Clearly describe the **problem** you are trying to solve.
-3.  Explain **why** this change is beneficial to the project.
-4.  If possible, suggest an **implementation idea** or a use case.
+## Making code contributions (Pull Requests)
 
-## Making Code Contributions (Pull Requests)
+Follow this workflow:
 
-Follow these steps to submit a code change:
+1. Fork the repository and clone your fork.
+2. Create a feature branch: `git checkout -b feature/your-feature`.
+3. Create and activate a project-local virtual environment named `.venv` (example below).
+4. Implement your changes and add tests.
+5. Run the test suite and linters locally.
+6. Commit and push your branch, then open a PR.
 
-### 1. Setup Your Environment
+Example development setup (Windows PowerShell):
 
-Make sure you have followed the **[Installation guide](../getting-started/installation.md)** to set up the development environment.
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-### 2. Fork and Clone
+Run tests with pytest:
 
-1.  **Fork** the main repository to your GitHub account.
-2.  **Clone** your fork locally:
-    ```bash
-    git clone git@github.com:your-username/your-project-name.git
-    cd your-project-name
-    ```
+```powershell
+py -3.12 -m pytest -q
+```
 
-### 3. Create a Branch
-
-Create a descriptive branch for your changes (e.g., `feature/add-caching` or `fix/issue-42`).
+Commit and push example:
 
 ```bash
-git checkout -b feature/your-feature-name
-4. Implement and Test
-Make your code changes.
+git add .
+git commit -m "feat: short description"
+git push origin feature/your-feature
+```
 
-Write or update tests to cover your changes.
-
-Run all tests to ensure nothing is broken:
-
-Bash
-
-# Example command
-pytest
-# or
-npm test
-5. Commit and Push
-Commit your changes using clear, conventional commit messages (e.g., feat: Add user login endpoint).
-
-Bash
-
-git commit -m "feat: Add new user profile model"
-git push origin feature/your-feature-name
-6. Create the Pull Request (PR)
-Go to the main repository on GitHub.
-
-GitHub will prompt you to create a PR from your new branch.
-
-Fill out the PR template completely, referencing any related issues.
-
-A core contributor will review your PR, provide feedback, and merge it when ready!
+Open a pull request on GitHub describing the change and linking any relevant issues.
 

@@ -1,68 +1,76 @@
-This file provides a concrete, goal-oriented tutorial for a new user, distinct from the reference-style content in the other folders. It assumes the user has completed installation and configuration.
+# First Step Guide — Quick tutorial
 
-Markdown
+This short tutorial shows how to run your first scan with Pigeon Finder on Windows and perform common actions.
 
-# Tutorial: Your First [Action/Feature]
+## 1) Create and activate a virtual environment
 
-This guide will walk you through performing a common task: **[e.g., Creating your first project, running a simple query, processing a batch of data]**.
+Open PowerShell in the project's root (`C:\Users\Admin\Desktop\clone\pigeon-finder`) and run:
 
-## Goal: [State the clear, simple goal]
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-By the end of this tutorial, you will have successfully **[e.g., created a new configuration file and started the service]**.
+If you prefer the quick helper, run:
 
-## Prerequisites
+```powershell
+.\quick_setup.ps1
+.venv\Scripts\Activate.ps1
+```
 
-* You have completed the **[Installation guide](../getting-started/installation.md)**.
-* You have a terminal window open in the root directory of your project.
+## 2) Launch the GUI
 
-## Step 1: Initialize the [Component]
+Run the launcher script (recommended) which starts the PyQt5 application:
 
-First, we need to create the basic boilerplate for the [component, e.g., project, data source].
+```powershell
+python .\run_pigeon_finder.py
+```
 
-Run the following command:
+Or run the GUI directly:
 
-```bash
-your-project-name init --name my-first-task
-You should see an output similar to:
+```powershell
+python pigeon_finder_gui.py
+```
 
-INFO: Project 'my-first-task' created successfully in ./my-first-task/
-Step 2: Modify the Configuration
-Navigate into the new directory and open the configuration file.
+## 3) Start a scan
 
-Bash
+- Choose a folder to scan using the GUI file selector.
+- Select file types (or leave empty to scan common types).
+- Set minimum size if you want to ignore tiny files.
+- Click "Start Scan".
 
-cd my-first-task/
-nano config.json # or use your preferred editor
-Change the logging_level from "INFO" to "DEBUG".
+The progress bar and status messages will update. The UI runs scanning in a background thread so the window stays responsive.
 
-Original config.json:
+## 4) Interpreting results
 
-JSON
+When the scan finishes, the results table lists detected duplicate groups. Each row shows a canonical (original) file and a list of duplicates.
 
-{
-  "name": "my-first-task",
-  "logging_level": "INFO", 
-  "timeout_seconds": 60
-}
-Modified config.json:
+Actions you can take per group:
 
-JSON
+- Delete duplicates (moves to recycle bin or permanent delete depending on settings).
+- Move duplicates to a chosen folder.
+- Export a report (CSV) listing duplicates.
 
-{
-  "name": "my-first-task",
-  "logging_level": "DEBUG", 
-  "timeout_seconds": 60 
-}
-Step 3: Run the Task
-Execute the project using the configuration file you just modified.
+## 5) Troubleshooting quick tips
 
-Bash
+- If a dependency fails to install on Windows, upgrade pip and setuptools first:
 
-your-project-name run --config config.json
-Success! 🎉
-If the terminal output now shows logs prefixed with [DEBUG] instead of just [INFO], you have successfully configured and run your first task with the new logging level!
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+```
 
-Next, explore the API Reference to learn more about advanced usage.
+- For Pillow / PyQt5 build issues, install prebuilt wheels or use the `quick_setup.ps1` which prefers wheels.
+- If the GUI doesn't start, check `verify_setup.py` to confirm imports:
+
+```powershell
+python verify_setup.py
+```
+
+## 6) Next steps
+
+- See `docs/development/api.md` for programmatic usage examples.
+- For advanced CLI usage, open `cli/duplicate-finder.py` to see how to call `file_io.scan_files` and `PigeonholeEngine` from scripts.
 
 
 

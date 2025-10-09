@@ -86,7 +86,7 @@ if __name__ == "__main__":
     if imports_ok and modules_ok:
         print("🎉 All checks passed! Pigeon Finder is ready to run!")
         print("\nTo start the application:")
-        print("  python main.py")
+        print("  python pigeon_finder_gui.py")
     else:
         print("❌ Some checks failed. Please fix the issues above.")
         sys.exit(1)

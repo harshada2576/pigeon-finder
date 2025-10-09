@@ -17,35 +17,41 @@ try {
 }
 
 # Remove existing venv
-if (Test-Path "venv") {
+if (Test-Path ".venv") {
     Write-Host "Removing existing virtual environment..." -ForegroundColor Yellow
-    Remove-Item -Recurse -Force venv
+    Remove-Item -Recurse -Force .venv
 }
 
 # Create virtual environment
 if ($python12) {
     Write-Host "Creating virtual environment with Python 3.12..." -ForegroundColor Green
-    & "py" "-3.12" "-m" "venv" "venv"
+    & "py" "-3.12" "-m" "venv" ".venv"
 } else {
     Write-Host "Creating virtual environment with available Python..." -ForegroundColor Yellow
-    python -m venv venv
+    python -m venv .venv
 }
 
 # Activate
 Write-Host "Activating virtual environment..." -ForegroundColor Yellow
-.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
+
+# Ensure pip, setuptools and wheel are up-to-date to prefer binary wheels
+Write-Host "Upgrading pip, setuptools and wheel..." -ForegroundColor Cyan
+.\.venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
 
 # Install packages with pre-compiled wheels
 Write-Host "Installing packages..." -ForegroundColor Cyan
 
 $packages = @(
     "customtkinter==5.2.2",
+    "PyQt5",
     "Pillow==9.5.0", 
     "psutil==5.9.6",
     "matplotlib==3.8.2", 
     "send2trash==1.8.2",
     "watchdog==3.0.0",
-    "PTable==0.9.2"
+    "PTable==0.9.2",
+    "prettytable>=2.0"
 )
 
 foreach ($package in $packages) {
@@ -55,8 +61,8 @@ foreach ($package in $packages) {
 
 Write-Host "`n✅ Setup complete!" -ForegroundColor Green
 Write-Host "To run Pigeon Finder:" -ForegroundColor Yellow
-Write-Host "  .\venv\Scripts\Activate.ps1" -ForegroundColor White
-Write-Host "  python run_pigeon_finder.py" -ForegroundColor White
+Write-Host "  .\.venv\Scripts\Activate.ps1" -ForegroundColor White
+Write-Host "  python pigeon_finder_gui.py" -ForegroundColor White
 
 # Test the setup
 Write-Host "`nTesting setup..." -ForegroundColor Cyan

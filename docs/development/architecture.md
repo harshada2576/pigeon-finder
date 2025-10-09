@@ -16,36 +16,66 @@ At a high level, the system is composed of three main layers:
 2.  **Business/Service Layer:** Contains the core logic and handles interactions between the presentation and data layers.
 3.  **Data Layer:** Manages persistence (database, file system, external APIs).
 
-## Codebase Structure
+# Pigeon Finder - Architecture Overview
 
-The primary directories in the source (`src/` or `app/`) folder are organized as follows:
+This document explains the core architecture of Pigeon Finder, focusing on the duplicate-finding pipeline, threading model, and how modules interact.
 
-| Directory | Purpose | Key Files/Modules |
-| :--- | :--- | :--- |
-| `src/core/` | **Core Logic.** Contains reusable utilities and foundational classes. | `logger.py`, `errors.js`, `settings.go` |
-| `src/services/` | **Business Logic.** Where the main application features reside. | `UserService.py`, `OrderProcessor.js` |
-| `src/data/` | **Persistence Layer.** Database models, repositories, and ORM setup. | `models.py`, `database.go` |
-| `src/api/` | **Presentation/Endpoints.** Defines the public interface (e.g., API routes). | `routes.py`, `handlers.js` |
-| `tests/` | **Testing.** Unit, integration, and end-to-end tests. | `test_core.py`, `test_api.js` |
+## High-level components
 
-## Key Components
+- UI (`pigeon_finder_gui.py`)
+	- PyQt5-based desktop GUI. Hosts the main window, status bar, progress bar, controls and results table.
+	- Starts a background `ScanWorker` that runs in a `QThread` to avoid blocking the GUI.
 
-### 1. The Dispatcher
+- File scanning (`file_io.py`)
+	- Responsible for recursive filesystem traversal and Level 1 grouping by file size. Exposes `scan_files` with optional progress callback.
 
-The **Dispatcher** (`src/core/dispatcher.py`) is responsible for routing incoming requests (from the Presentation Layer) to the correct **Service** in the Business Layer.
+- Pigeonhole engine (`core/pigeonhole_engine.py`)
+	- Implements the two-stage duplicate detection for candidate sets produced from size groups:
+		1. Quick screen: partial byte comparisons and lightweight checks to reduce candidates.
+		2. Full hashing: chunked hashing (to limit memory usage) and exact duplicate confirmation.
 
-### 2. Service Interfaces
+- Hashing utilities (`core/hashing.py`)
+	- Provides chunked hashing functions and constants (e.g., partial read length for quick screen and chunk size for full hashing).
 
-We use **Service Interfaces** (or abstract classes) heavily to ensure the Business Logic is decoupled from the underlying implementation. This allows us to swap out, for example, a PostgreSQL database for a MySQL database without changing the core business rules.
+- Duplicate manager (`core/duplicate_manager.py`)
+	- Collects, merges and formats duplicate groups for the UI or CLI output. Performs selection of the canonical/original file within each group.
 
-## Data Flow Example
+## Data flow
 
-1.  A user makes an **HTTP request** to `/api/v1/users/`.
-2.  The **API Handler** (`src/api/routes.py`) receives the request.
-3.  The Handler calls the `UserService.get_all_users()` method in the **Business Layer**.
-4.  The `UserService` calls the `UserRepository.find_all()` method in the **Data Layer**.
-5.  The `UserRepository` executes a query against the database and returns the result.
-6.  The data flows back up to the **API Handler**, which serializes it and returns an HTTP response.
+1. User triggers a scan from the GUI (or runs the CLI). The GUI creates a `ScanWorker` and starts a `QThread`.
+2. `ScanWorker` calls `file_io.scan_files(root_path, ...)`, passing a small progress callback.
+3. `scan_files` returns a mapping size -> [paths]. The worker forwards this to `PigeonholeEngine.find_duplicates`.
+4. `PigeonholeEngine` iterates each size group. For groups with >1 file, it applies the quick screen to prune obviously non-duplicates.
+5. Remaining candidate groups are hashed using chunked reads by `FileHasher.calculate_hash` and compared to confirm duplicates.
+6. The engine collects confirmed duplicates into canonical groups and returns a mapping original -> [duplicates].
+7. `ScanWorker` emits progress and final results back to the GUI via Qt signals. The GUI updates the table and status bar.
+
+## Threading & Concurrency
+
+- The GUI runs in the main thread. Long-running operations (scan + hashing) run in a secondary `QThread` managed by `ScanWorker`.
+- Communication uses Qt signals (progress_update, scan_complete, error_occurred) to marshal data safely across threads.
+
+## Hashing & Performance considerations
+
+- Quick screen: The engine performs small, fixed-length byte comparisons at deterministic offsets (start/middle/end) to quickly rule out mismatches without hashing.
+- Chunked hashing: Files are hashed in fixed-size chunks to avoid loading large files entirely into memory. Hash state is updated per-chunk.
+- Aggregate operations: For algorithm-critical code (grouping, selection, aggregation), we avoid Python built-in helpers like `min`, `max`, `sum`, `sorted`, `any`, `all`. Instead, explicit loops are used for clarity and to ensure consistent behavior across Python versions.
+
+## Extensibility
+
+- Hash algorithms: `PigeonholeEngine` accepts a hash algorithm parameter (e.g., 'md5', 'sha256') to switch algorithms.
+- New quick-screen heuristics can be added into the engine without changing the high-level data flow.
+
+## Deployment notes
+
+- Desktop: The project runs as a standalone PyQt5 application. Use the provided `quick_setup.ps1` to create a `.venv` and install dependencies on Windows.
+- Packaging: PyInstaller spec files may be used for generating standalone executables; careful handling of binary wheels (PyQt5, Pillow) is needed on Windows.
+
+## Diagram (text)
+
+GUI -> ScanWorker(QThread) -> file_io.scan_files -> PigeonholeEngine -> core.hashing -> DuplicateManager -> GUI
+
+Each arrow represents a function call or signal emission and the primary direction of data flow.
 
 
 

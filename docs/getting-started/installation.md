@@ -1,48 +1,51 @@
+
 # Installation
 
-This guide walks you through installing **[Your Project Name]**.
+This guide shows how to set up Pigeon Finder locally for development and use.
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
+- Python 3.12 (recommended)
+- pip
+- Git (optional, for cloning the repository)
 
-* **[Dependency 1]**: Version [X.Y] or higher (e.g., Node.js: Version 16+)
-* **[Dependency 2]**: (e.g., Python: Version 3.8+)
+## Quick setup (Windows PowerShell)
 
-## 1. Standard Installation (Recommended)
+The repository includes a helper script that creates a project-local virtual environment (`.venv`) and installs requirements.
 
-The easiest way to install the project is via **[Package Manager]** (e.g., npm, pip, composer).
+```powershell
+git clone https://github.com/your-username/pigeon-finder.git
+cd pigeon-finder
+.\quick_setup.ps1
+```
 
-### Command
+After the script completes, activate the environment and run the GUI:
 
-Open your terminal and run:
+```powershell
+.venv\Scripts\Activate.ps1
+python pigeon_finder_gui.py
+```
 
-```bash
-# Example for a Python project:
-pip install your-project-name
+## Manual setup (alternative)
 
-# Example for a Node.js project:
-npm install your-project-name
-2. Installing from Source
-If you want to contribute or need the very latest version, you can install directly from the source code.
+If you prefer to set up manually:
 
-Clone the repository:
-
-Bash
-
-git clone [Link to your repo]
-cd your-project-name
-Install dependencies and build:
-
-Bash
-
-# Example commands, adjust as needed
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-# or
-npm install
-npm run build
-Next Steps
-Once installed, proceed to the Configuration Guide.
+```
+
+If a package fails to build (Windows), see `docs/troubleshooting.md` for guidance on prebuilt wheels and build tools.
+
+## Verify installation
+
+Run the verify script to confirm critical imports are available:
+
+```powershell
+python verify_setup.py
+```
+
 
 
 

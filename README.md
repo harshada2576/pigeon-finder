@@ -5,7 +5,7 @@
 Pigeon Finder is a sophisticated duplicate file detection tool that leverages the mathematical Pigeonhole Principle to dramatically reduce scan times while maintaining 100% accuracy. Unlike traditional duplicate finders that compare every file against every other file (O(n²) complexity), Pigeon Finder groups files by size first, then only computes hashes for files in multi-file size groups.
 
 ![Pigeon Finder](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-blue)
-![Python](https://img.shields.io/badge/Python-3.8%2B-green)
+![Python](https://img.shields.io/badge/Python-3.12%2B-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ## 🚀 Key Features
@@ -17,7 +17,8 @@ Pigeon Finder is a sophisticated duplicate file detection tool that leverages th
 - **Real-time Progress Tracking**: Live progress updates with cancellation support
 
 ### 🎨 Professional UI
-- **Modern Dark/Light Themes**: CustomTkinter-based professional interface
+- **Modern Dark/Light Themes**: PyQt5-based desktop interface (primary)
+- A secondary CustomTkinter-based UI remains in the `ui/` package for legacy/testing
 - **Real-time Statistics**: Live efficiency metrics and performance analytics
 - **Interactive Visualizations**: Charts and graphs for data analysis
 - **File Preview**: Built-in image and text file preview capabilities
@@ -78,40 +79,40 @@ The Pigeonhole Principle states that if n items are put into m containers with n
    - Install all dependencies
    - Verify the installation
 
-#### Option 2: Manual Setup
+### Option 2: Manual Setup
 
-1. **Create and activate virtual environment**:
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
+1. **Create and activate a project-local virtual environment** (recommended name: `.venv`):
+   ```powershell
+   # Windows (PowerShell)
+   py -3.12 -m venv .venv
+   .venv\Scripts\Activate.ps1
 
    # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
+   python3 -m venv .venv
+   source .venv/bin/activate
    ```
 
 2. **Install dependencies**:
-   ```bash
+   ```powershell
    pip install -r requirements.txt
    ```
 
-   If you don't have `requirements.txt`, install manually:
-   ```bash
-   pip install customtkinter==5.2.2 Pillow==9.5.0 psutil==5.9.6 matplotlib==3.8.2 send2trash==1.8.2 watchdog==3.0.0 PTable==0.9.2
+   If you don't have `requirements.txt`, install manually (includes GUI deps):
+   ```powershell
+   pip install PyQt5 customtkinter==5.2.2 Pillow==9.5.0 psutil==5.9.6 matplotlib==3.8.2 send2trash==1.8.2 watchdog==3.0.0 PTable==0.9.2 prettytable
    ```
 
 #### Option 3: Using Python 3.12 (Best Compatibility)
 
 If you have multiple Python versions:
 
-```bash
+```powershell
 # Check available Python versions
 py -0
 
-# Create environment with Python 3.12
-py -3.12 -m venv venv
-venv\Scripts\activate
+# Create environment with Python 3.12 and activate
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
@@ -119,12 +120,14 @@ pip install -r requirements.txt
 
 ### Starting the Application
 
-```bash
-# Activate virtual environment (if not already active)
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # macOS/Linux
+```powershell
+# Activate the project virtual environment (Windows PowerShell)
+.venv\Scripts\Activate.ps1
 
-# Run the application
+# Run the GUI (primary entrypoint)
+python pigeon_finder_gui.py
+
+# Alternative wrapper
 python run_pigeon_finder.py
 ```
 
@@ -168,18 +171,14 @@ python run_pigeon_finder.py
 
 ```
 pigeon-finder/
-├── run_pigeon_finder.py          # Main application entry point
-├── ui_main_window.py             # Main application window
-├── core_file_scanner.py          # File system scanning and monitoring
-├── core_hashing.py               # File hashing algorithms
-├── core_pigeonhole_engine.py     # Pigeonhole principle implementation
-├── core_duplicate_manager.py     # Duplicate file management
-├── ui_results_panel.py           # Results display and management
-├── ui_stats_panel.py             # Statistics and visualizations
-├── ui_styles.py                  # UI theme and styling
+├── pigeon_finder_gui.py          # PyQt5 GUI application (primary)
+├── run_pigeon_finder.py          # Wrapper to start the GUI
+├── core/                         # Core duplicate-detection logic (preferred)
+├── ui/                           # Alternative UI components (CustomTkinter)
+├── tests/                        # Unit tests (pytest)
 ├── requirements.txt              # Python dependencies
 ├── quick_setup.ps1               # Windows setup script
-├── setup.sh                      # Linux/macOS setup script
+├── docs/                         # Documentation and developer guides
 └── README.md                     # This file
 ```
 
@@ -239,6 +238,10 @@ source venv/bin/activate  # macOS/Linux
 - Install Tkinter: `sudo apt-get install python3-tk`
 - Tested on Ubuntu 18.04+, CentOS 7+
 
+### Common Installation Failures
+
+If `pip install -r requirements.txt` fails on Windows, it's often because some packages need prebuilt binary wheels (for example, Pillow or PyQt) or C build tools are missing. See `docs/troubleshooting.md` for step-by-step guidance, common fixes, and links to installers.
+
 ## 📊 Performance Tips
 
 1. **Start Small**: Begin with directories containing 1,000-10,000 files
@@ -259,19 +262,24 @@ The project uses a modular architecture:
 
 ### Running Tests
 
-```bash
-# Run basic functionality tests
-python final_test.py
+We use pytest for automated tests. Run tests inside the project virtual environment:
 
-# Test individual components
-python -c "from core_file_scanner import FileScanner; print('FileScanner OK')"
+```powershell
+.venv\Scripts\Activate.ps1
+py -3.12 -m pytest -q
 ```
 
 ### Building from Source
 
-1. Ensure all dependencies are installed
-2. Use the provided entry point: `run_pigeon_finder.py`
-3. For distribution, see the `build.spec` file for PyInstaller configuration
+If you need a standalone binary, use PyInstaller from within a clean virtual environment. A `PigeonFinder.spec` file is included for convenience.
+
+Example:
+
+```powershell
+.venv\Scripts\Activate.ps1
+py -3.12 -m pip install pyinstaller
+py -3.12 -m PyInstaller PigeonFinder.spec
+```
 
 ## 🤝 Contributing
 

@@ -52,3 +52,27 @@ By contributing, you agree that your contributions will be licensed under its MI
 
 ## References
 This document was adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md).
+
+## Development Setup (local)
+
+1. Fork the repository and clone your fork locally.
+2. Create a project-local virtual environment (recommended name: `.venv`):
+
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+3. Install dependencies:
+
+```powershell
+pip install -r requirements.txt
+```
+
+4. Run tests with pytest before opening a PR:
+
+```powershell
+py -3.12 -m pytest -q
+```
+
+5. Follow the usual fork/branch/PR workflow and include tests for new features.

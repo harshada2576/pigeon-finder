@@ -7,6 +7,7 @@ import queue
 import time
 from typing import List, Dict, Callable, Any
 import logging
+import os
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -136,8 +137,16 @@ class SmartBatchManager:
         """Dynamically determine optimal batch size based on file characteristics"""
         if not file_paths:
             return 100
-        
-        total_size = sum(os.path.getsize(f) for f in file_paths if os.path.exists(f))
+        # Compute total size of existing files without using built-in sum()
+        total_size = 0
+        for f in file_paths:
+            try:
+                if os.path.exists(f):
+                    total_size += os.path.getsize(f)
+            except Exception:
+                # Ignore files we cannot stat
+                continue
+
         avg_size = total_size / len(file_paths) if file_paths else 0
         
         # Adjust batch size based on average file size
@@ -170,8 +179,17 @@ class SmartBatchManager:
         results = self.processor.process_batch(file_paths, delete_task)
         
         # Analyze results
-        success_count = sum(1 for r in results if r.get('success'))
-        failed_files = [r['file'] for r in results if not r.get('success')]
+        success_count = 0
+        failed_files = []
+        for r in results:
+            if r.get('success'):
+                success_count += 1
+            else:
+                try:
+                    failed_files.append(r['file'])
+                except Exception:
+                    # ignore malformed result entries
+                    continue
         
         return {
             'total': len(file_paths),
@@ -210,8 +228,16 @@ class SmartBatchManager:
         results = self.processor.process_batch(file_paths, move_task)
         
         # Analyze results
-        success_count = sum(1 for r in results if r.get('success'))
-        failed_files = [r['file'] for r in results if not r.get('success')]
+        success_count = 0
+        failed_files = []
+        for r in results:
+            if r.get('success'):
+                success_count += 1
+            else:
+                try:
+                    failed_files.append(r['file'])
+                except Exception:
+                    continue
         
         return {
             'total': len(file_paths),
@@ -252,12 +278,23 @@ class SmartBatchManager:
                 hash_groups[file_hash].append(result['file'])
         
         # Filter groups with duplicates
-        duplicate_groups = {hash_val: files for hash_val, files in hash_groups.items() if len(files) > 1}
-        
+        duplicate_groups = {}
+        for hash_val, files in hash_groups.items():
+            if len(files) > 1:
+                duplicate_groups[hash_val] = files
+
+        processed_count = 0
+        failed_count = 0
+        for r in results:
+            if r.get('success'):
+                processed_count += 1
+            else:
+                failed_count += 1
+
         return {
             'total': len(file_paths),
-            'processed': len([r for r in results if r.get('success')]),
-            'failed': len([r for r in results if not r.get('success')]),
+            'processed': processed_count,
+            'failed': failed_count,
             'duplicate_groups': duplicate_groups,
             'results': results
         }
@@ -268,8 +305,21 @@ class SmartBatchManager:
             return {}
         
         total_operations = len(self.operation_history)
-        successful_operations = sum(1 for op in self.operation_history if op.get('success', 0) > 0)
-        total_files_processed = sum(op.get('total', 0) for op in self.operation_history)
+
+        successful_operations = 0
+        total_files_processed = 0
+        for op in self.operation_history:
+            try:
+                if op.get('success', 0) > 0:
+                    successful_operations += 1
+            except Exception:
+                # ignore malformed history entries
+                pass
+            try:
+                total_files_processed += int(op.get('total', 0))
+            except Exception:
+                # ignore entries with non-numeric totals
+                continue
         
         return {
             'total_operations': total_operations,

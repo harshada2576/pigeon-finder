@@ -26,8 +26,16 @@ def _hash_file_chunked(filepath, size_limit=None, hash_algorithm=hashlib.sha256)
         with open(filepath, 'rb') as f:
             while True:
                 # Determine how much chunk to read
-                remaining = size_limit - bytes_read if size_limit is not None else HASH_CHUNK_SIZE
-                chunk_size = min(HASH_CHUNK_SIZE, remaining) if size_limit is not None else HASH_CHUNK_SIZE
+                remaining = size_limit - bytes_read if size_limit is not None else None
+                if size_limit is not None:
+                    if remaining <= 0:
+                        chunk_size = 0
+                    elif remaining < HASH_CHUNK_SIZE:
+                        chunk_size = remaining
+                    else:
+                        chunk_size = HASH_CHUNK_SIZE
+                else:
+                    chunk_size = HASH_CHUNK_SIZE
                 
                 if chunk_size <= 0:
                     break
@@ -106,8 +114,14 @@ def find_duplicates(files_by_size):
     confirmed_duplicates = []
     
     # Filter for groups that have more than one file (i.e., potential duplicates)
-    groups_to_check = {size: paths for size, paths in files_by_size.items() if len(paths) > 1}
-    total_potential = sum(len(paths) for paths in groups_to_check.values())
+    groups_to_check = {}
+    for size, paths in files_by_size.items():
+        if len(paths) > 1:
+            groups_to_check[size] = paths
+
+    total_potential = 0
+    for paths in groups_to_check.values():
+        total_potential += len(paths)
     
     if not total_potential:
         return []
@@ -137,7 +151,9 @@ def find_duplicates(files_by_size):
     print("\n Hashing Level 2 Complete.")
 
     # LEVEL 3: Full Hash Check (only on groups that passed Level 2)
-    total_to_full_hash = sum(len(paths) for paths in potential_duplicates.values())
+    total_to_full_hash = 0
+    for paths in potential_duplicates.values():
+        total_to_full_hash += len(paths)
     
     if not total_to_full_hash:
         print("No files passed the partial hash check.")
@@ -180,24 +196,53 @@ def select_original_file(duplicate_set, keep_mode):
     def get_mtime(path):
         try:
             return os.path.getmtime(path)
-        except:
+        except Exception:
             # Default to 0 if metadata is inaccessible
             return 0 
 
+    # Explicit selection logic without min/max
+    if not duplicate_set:
+        return None
+
     if keep_mode == 'newest':
-        # Select the file with the largest modification timestamp (newest)
-        return max(duplicate_set, key=get_mtime)
-    
-    elif keep_mode == 'oldest':
-        # Select the file with the smallest modification timestamp (oldest)
-        return min(duplicate_set, key=get_mtime)
-        
-    elif keep_mode == 'path_length':
-        # Select the file with the shortest path string (often implies a root/original location)
-        return min(duplicate_set, key=len)
-        
-    # Default is 'newest' if something goes wrong
-    return max(duplicate_set, key=get_mtime)
+        best = None
+        best_mtime = -1
+        for p in duplicate_set:
+            m = get_mtime(p)
+            if m > best_mtime:
+                best_mtime = m
+                best = p
+        return best
+
+    if keep_mode == 'oldest':
+        best = None
+        best_mtime = None
+        for p in duplicate_set:
+            m = get_mtime(p)
+            if best is None or m < best_mtime:
+                best_mtime = m
+                best = p
+        return best
+
+    if keep_mode == 'path_length':
+        best = None
+        best_len = None
+        for p in duplicate_set:
+            l = len(p)
+            if best is None or l < best_len:
+                best_len = l
+                best = p
+        return best
+
+    # Default to newest
+    best = None
+    best_mtime = -1
+    for p in duplicate_set:
+        m = get_mtime(p)
+        if m > best_mtime:
+            best_mtime = m
+            best = p
+    return best
 
 def process_action(duplicate_set, original_path, action, move_path=None):
     """
@@ -250,7 +295,10 @@ def generate_report(duplicate_sets, args, start_time):
     end_time = time.time()
     total_runtime = end_time - start_time
     total_sets = len(duplicate_sets)
-    total_duplicates = sum(len(s) - 1 for s in duplicate_sets)
+    total_duplicates = 0
+    for s in duplicate_sets:
+        if len(s) > 1:
+            total_duplicates += (len(s) - 1)
     
     
     report_content = []

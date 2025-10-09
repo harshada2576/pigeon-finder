@@ -136,13 +136,28 @@ class PigeonholeEngine:
             files = non_system_files
         
         # Prefer files with earlier modification time (older files)
-        return min(files, key=lambda x: os.path.getmtime(x))
+        # Implement explicit selection logic instead of built-in min()
+        best = None
+        best_mtime = None
+        for f in files:
+            try:
+                mtime = os.path.getmtime(f)
+            except Exception:
+                mtime = float('inf')
+            if best is None or mtime < best_mtime:
+                best = f
+                best_mtime = mtime
+        return best
     
     def _is_system_directory(self, file_path: str) -> bool:
         """Check if file is in a system directory"""
         system_dirs = {'system', 'windows', 'program files', 'programdata', 'recovery'}
         path_parts = file_path.lower().split(os.sep)
-        return any(sys_dir in path_parts for sys_dir in system_dirs)
+        # Explicit any() replacement: iterate and check membership
+        for sys_dir in system_dirs:
+            if sys_dir in path_parts:
+                return True
+        return False
     
     def get_optimization_stats(self) -> Dict:
         """Get statistics about optimization efficiency"""

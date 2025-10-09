@@ -59,7 +59,10 @@ def find_duplicates(root_path):
     # 2. PIGEONHOLE LEVEL 2: Group same-sized files by hash
     # The 'hash' is the "pigeonhole" for this secondary check.
     duplicates = defaultdict(list)
-    total_files_to_hash = sum(len(paths) for size, paths in files_by_size.items() if len(paths) > 1)
+    total_files_to_hash = 0
+    for size, paths in files_by_size.items():
+        if len(paths) > 1:
+            total_files_to_hash += len(paths)
     
     print(f"\n--- Phase 2: Hashing {total_files_to_hash} Potential Duplicates ---")
     

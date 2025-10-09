@@ -6,6 +6,8 @@ __pycache__/
 *.so
 
 # Virtual environment
+# Use a project-local venv name (.venv) to avoid accidental commits of user-specific envs
+.venv/
 venv/
 .env/
 .envrc
@@ -27,6 +29,10 @@ nosetests.xml
 coverage.xml
 *.cover
 *.log
+
+# Editor folders
+.vscode/
+.idea/
 
 # IDEs and editors
 .vscode/
