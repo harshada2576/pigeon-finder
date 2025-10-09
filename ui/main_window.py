@@ -11,6 +11,9 @@ from pathlib import Path
 from ..core.file_scanner import FileScanner
 from ..core.pigeonhole_engine import PigeonholeEngine
 from ..core.duplicate_manager import DuplicateManager
+from core.file_scanner import FileScanner
+from core.pigeonhole_engine import PigeonholeEngine
+from core.duplicate_manager import DuplicateManager
 from ..core.batch_processor import SmartBatchManager
 from ..core.file_preview import PreviewDialog
 from .results_panel import ResultsPanel
@@ -30,6 +33,9 @@ class MainWindow(ctk.CTk):
         
         # Initialize components
         self.config = Config()
+        self.scanner = FileScanner()
+        self.engine = PigeonholeEngine()
+        self.manager = DuplicateManager()
         self.scanner = FileScanner()
         self.engine = PigeonholeEngine()
         self.manager = DuplicateManager()

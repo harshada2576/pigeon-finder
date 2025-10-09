@@ -1,10 +1,15 @@
 import sys
 import os
-import hashlib
-import shutil
 import time
+import hashlib
 from datetime import datetime
-from collections import defaultdict
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QSize
+# Import shared backend logic
+from file_io import scan_files, process_action, select_original_file
+from core import PigeonholeEngine
 
 # Import all necessary PyQt5 modules
 from PyQt5.QtWidgets import (
@@ -102,143 +107,17 @@ class ScanWorker(QObject):
 
     def run_scan(self):
         start_time = time.time()
-        
-        # --- PHASE 1: M2 - Scan and Size Pigeonhole (Level 1) ---
-        files_by_size = self._scan_files_level1()
+        files_by_size = scan_files(self.root_path, self.allowed_extensions, self.min_size, self.include_zero_byte)
         if not files_by_size:
-             self.scan_complete.emit([], time.time() - start_time)
-             return
-
-        # --- PHASE 2: M1 - Hashing Pigeonhole (Level 2 & 3) ---
-        duplicates = self._find_duplicates_level23(files_by_size)
-        
+            self.scan_complete.emit([], time.time() - start_time)
+            return
+        engine = PigeonholeEngine()
+        duplicate_dict = engine.find_duplicates(files_by_size)
+        duplicates = [[original] + dups for original, dups in duplicate_dict.items()]
         runtime = time.time() - start_time
         self.scan_complete.emit(duplicates, runtime)
 
 
-    def _scan_files_level1(self):
-        """M2 Logic: Traverses the file system and applies filters."""
-        files_by_size = defaultdict(list)
-        try:
-            for dirpath, _, filenames in os.walk(self.root_path):
-                if not self._is_running: return None
-                
-                for filename in filenames:
-                    filepath = os.path.join(dirpath, filename)
-                    if not os.path.isfile(filepath): continue
-                    
-                    file_size, _ = get_file_metadata(filepath)
-                    
-                    if file_size == ZERO_BYTE_SIZE and not self.include_zero_byte: continue
-                    if file_size < self.min_size: continue
-                    
-                    if self.allowed_extensions:
-                        ext = os.path.splitext(filename)[1].lower()
-                        if ext not in self.allowed_extensions: continue
-                            
-                    files_by_size[file_size].append(filepath)
-        except Exception as e:
-            self.error_occurred.emit(f"File System Error: {e}")
-            return None
-            
-        return files_by_size
-
-
-    def _find_duplicates_level23(self, files_by_size):
-        """M1 Logic: Executes Partial and Full Hashing."""
-        potential_duplicates = defaultdict(list)
-        confirmed_duplicates = []
-        
-        groups_to_check = {size: paths for size, paths in files_by_size.items() if len(paths) > 1}
-        total_potential = sum(len(paths) for paths in groups_to_check.values())
-        if not total_potential: return []
-        
-        current_progress = 0
-
-        # LEVEL 2: Partial Hash Check
-        for file_list in groups_to_check.values():
-            files_by_partial_hash = defaultdict(list)
-            for filepath in file_list:
-                if not self._is_running: return []
-                
-                partial_hash = get_partial_hash(filepath)
-                if partial_hash:
-                    files_by_partial_hash[partial_hash].append(filepath)
-                
-                current_progress += 1
-                self.progress_update.emit(current_progress, total_potential)
-
-            for partial_hash, paths in files_by_partial_hash.items():
-                if len(paths) > 1:
-                    potential_duplicates[partial_hash].extend(paths)
-
-        # LEVEL 3: Full Hash Check
-        total_to_full_hash = sum(len(paths) for paths in potential_duplicates.values())
-        current_progress = 0 # Reset progress for the more intense hashing step
-
-        for file_list in potential_duplicates.values():
-            files_by_full_hash = defaultdict(list)
-
-            for filepath in file_list:
-                if not self._is_running: return []
-                
-                full_hash = get_full_hash(filepath)
-                if full_hash:
-                    files_by_full_hash[full_hash].append(filepath)
-                    
-                current_progress += 1
-                # Use a larger total number for the progress bar to emphasize this step
-                self.progress_update.emit(current_progress, total_to_full_hash)
-
-            for _, paths in files_by_full_hash.items():
-                if len(paths) > 1:
-                    confirmed_duplicates.append(paths)
-
-        return confirmed_duplicates
-
-# --- 3. THE PYQT5 APPLICATION UI (M4 & M5 Integration) ---
-
-class PigeonFinderApp(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("🐦 PigeonFinder: Duplicate File Manager")
-        self.setGeometry(100, 100, 1000, 700)
-        self.current_theme = 'dark'
-        self.duplicate_sets = []
-        self._setup_themes()
-        self._setup_ui()
-        self.apply_theme()
-
-    def _setup_themes(self):
-        """Define vibrant light and dark stylesheets."""
-        
-        # Vibrant Dark Theme (Charcoal base, electric blue accent)
-        self.dark_stylesheet = """
-            QMainWindow, QWidget { background-color: #2c3e50; color: #ecf0f1; }
-            QPushButton { 
-                background-color: #3498db; color: white; border: 1px solid #2980b9; 
-                padding: 8px; border-radius: 5px; min-width: 80px; 
-            }
-            QPushButton:hover { background-color: #2980b9; }
-            QLineEdit, QSpinBox, QComboBox { 
-                background-color: #34495e; color: #ecf0f1; border: 1px solid #2c3e50; 
-                padding: 5px; border-radius: 3px; 
-            }
-            QGroupBox { 
-                border: 2px solid #34495e; margin-top: 10px; padding: 10px;
-                border-radius: 5px; 
-            }
-            QTableWidget {
-                background-color: #34495e; color: #ecf0f1; border: 1px solid #2c3e50;
-                selection-background-color: #3498db;
-                gridline-color: #44627b;
-            }
-            QHeaderView::section { 
-                background-color: #34495e; padding: 4px; border: 1px solid #2c3e50; 
-                color: #ecf0f1;
-            }
-            QProgressBar::chunk { background-color: #2ecc71; }
-        """
         
         # Minimal Light Theme (Off-white base, teal accent)
         self.light_stylesheet = """
@@ -624,32 +503,8 @@ class PigeonFinderApp(QMainWindow):
 
 
     def _process_io_action(self, duplicate_set, original_path, action, move_path=None):
-        """Direct implementation of M2's action logic."""
-        processed_count = 0
-        files_to_act_on = [p for p in duplicate_set if p != original_path]
-        
-        for target_path in files_to_act_on:
-            try:
-                if action == 'delete':
-                    os.remove(target_path)
-                elif action == 'move':
-                    os.makedirs(move_path, exist_ok=True)
-                    filename = os.path.basename(target_path)
-                    dest_path = os.path.join(move_path, filename)
-                    
-                    if os.path.exists(dest_path):
-                        name, ext = os.path.splitext(filename)
-                        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                        dest_path = os.path.join(move_path, f"{name}_DUP_{timestamp}{ext}")
-
-                    shutil.move(target_path, dest_path)
-                
-                processed_count += 1
-                
-            except Exception as e:
-                print(f"[ERROR] Failed to {action} {target_path}: {e}", file=sys.stderr)
-                
-        return processed_count
+        # Use shared process_action from file_io.py
+        return process_action(duplicate_set, original_path, action, move_path)
         
     def _export_report(self):
         """Saves the scan results and summary to a file."""

@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 # --- Import components from other team members ---
-from core_engine import find_duplicates 
+from core import PigeonholeEngine
 from file_io import scan_files, process_action, select_original_file
 
 # --- Reporting Functions (M5 Responsibility) ---
@@ -131,7 +131,15 @@ def main():
     files_by_size = scan_files(root_path, allowed_extensions, args.min_size, args.include_zero_byte)
 
     # --- 2. M1: Hashing Pigeonhole (Level 2 & 3) ---
-    duplicate_sets = find_duplicates(files_by_size)
+    engine = PigeonholeEngine()
+    duplicate_sets = []
+    if files_by_size:
+        # files_by_size is a dict of size -> list of files
+        # PigeonholeEngine.find_duplicates returns a dict of original -> duplicates
+        duplicate_dict = engine.find_duplicates(files_by_size)
+        # Convert to list of sets for reporting compatibility
+        for original, dups in duplicate_dict.items():
+            duplicate_sets.append([original] + dups)
 
     # --- 3. M5: Reporting and Action ---
     generate_report(duplicate_sets, args, start_time)

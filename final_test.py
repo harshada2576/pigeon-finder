@@ -58,10 +58,10 @@ def test_basic_functionality():
     print("\n🔧 Testing basic functionality...")
     
     try:
-        from core_file_scanner import FileScanner
-        from core_hashing import FileHasher
-        from core_pigeonhole_engine import PigeonholeEngine
-        from core_duplicate_manager import DuplicateManager
+        from core.file_scanner import FileScanner
+        from core.hashing import FileHasher
+        from core.pigeonhole_engine import PigeonholeEngine
+        from core.duplicate_manager import DuplicateManager
         
         # Create instances
         scanner = FileScanner()
